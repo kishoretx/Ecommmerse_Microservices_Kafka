@@ -1,4 +1,4 @@
-# TinyCorp Ecommerce Kafka Microservices Demo
+# Ecommerce Kafka Microservices Demo
 
 A complete event-driven ecommerce reference system using Spring Boot, Kafka, Maven, H2, OpenAPI, and a live dashboard UI.
 
