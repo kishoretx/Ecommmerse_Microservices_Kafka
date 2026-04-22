@@ -1,0 +1,224 @@
+{
+  "info": {
+    "_postman_id": "94e82b7e-5073-4f54-9ef8-c6a6a6e71a4f",
+    "name": "TinyCorp Ecommerce Kafka Microservices",
+    "description": "Postman collection for TinyCorp ecommerce microservices (dashboard-ui, product, order, payment, notification).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "dashboardBaseUrl", "value": "http://localhost:8080" },
+    { "key": "productBaseUrl", "value": "http://localhost:8081" },
+    { "key": "orderBaseUrl", "value": "http://localhost:8082" },
+    { "key": "paymentBaseUrl", "value": "http://localhost:8083" },
+    { "key": "notificationBaseUrl", "value": "http://localhost:8084" },
+    { "key": "productId", "value": "1" },
+    { "key": "reserveQty", "value": "1" },
+    { "key": "demoOrderCount", "value": "10" },
+    { "key": "lastOrderNumber", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Dashboard UI",
+      "item": [
+        {
+          "name": "Dashboard Home",
+          "request": {
+            "method": "GET",
+            "url": "{{dashboardBaseUrl}}/"
+          }
+        },
+        {
+          "name": "Get Dashboard Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{dashboardBaseUrl}}/api/dashboard/metrics"
+          }
+        },
+        {
+          "name": "Get Dashboard Products",
+          "request": {
+            "method": "GET",
+            "url": "{{dashboardBaseUrl}}/api/dashboard/products"
+          }
+        },
+        {
+          "name": "Place Order via Dashboard",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Postman UI User\",\n  \"customerEmail\": \"postman.ui@example.com\",\n  \"items\": [\n    { \"productId\": 1, \"quantity\": 1 },\n    { \"productId\": 2, \"quantity\": 2 }\n  ]\n}"
+            },
+            "url": "{{dashboardBaseUrl}}/api/dashboard/orders"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "if (json.orderNumber) { pm.collectionVariables.set('lastOrderNumber', json.orderNumber); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Generate Demo Orders",
+          "request": {
+            "method": "POST",
+            "url": "{{dashboardBaseUrl}}/api/dashboard/demo-orders?count={{demoOrderCount}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Service",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": "{{productBaseUrl}}/api/products"
+          }
+        },
+        {
+          "name": "Get Product By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{productBaseUrl}}/api/products/{{productId}}"
+          }
+        },
+        {
+          "name": "Reserve Product Stock",
+          "request": {
+            "method": "POST",
+            "url": "{{productBaseUrl}}/api/products/{{productId}}/reserve?quantity={{reserveQty}}"
+          }
+        },
+        {
+          "name": "Get Product Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{productBaseUrl}}/api/products/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Order Service",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Direct Order API User\",\n  \"customerEmail\": \"direct.order@example.com\",\n  \"items\": [\n    { \"productId\": 3, \"quantity\": 1 },\n    { \"productId\": 4, \"quantity\": 1 }\n  ]\n}"
+            },
+            "url": "{{orderBaseUrl}}/api/orders"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "if (json.orderNumber) { pm.collectionVariables.set('lastOrderNumber', json.orderNumber); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "url": "{{orderBaseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Get Order Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{orderBaseUrl}}/api/orders/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Service",
+      "item": [
+        {
+          "name": "Get Payment Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{paymentBaseUrl}}/api/payments/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notification Service",
+      "item": [
+        {
+          "name": "Get Notification Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{notificationBaseUrl}}/api/notifications/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "OpenAPI Docs",
+      "item": [
+        {
+          "name": "Dashboard OpenAPI",
+          "request": {
+            "method": "GET",
+            "url": "{{dashboardBaseUrl}}/v3/api-docs"
+          }
+        },
+        {
+          "name": "Product OpenAPI",
+          "request": {
+            "method": "GET",
+            "url": "{{productBaseUrl}}/v3/api-docs"
+          }
+        },
+        {
+          "name": "Order OpenAPI",
+          "request": {
+            "method": "GET",
+            "url": "{{orderBaseUrl}}/v3/api-docs"
+          }
+        },
+        {
+          "name": "Payment OpenAPI",
+          "request": {
+            "method": "GET",
+            "url": "{{paymentBaseUrl}}/v3/api-docs"
+          }
+        },
+        {
+          "name": "Notification OpenAPI",
+          "request": {
+            "method": "GET",
+            "url": "{{notificationBaseUrl}}/v3/api-docs"
+          }
+        }
+      ]
+    }
+  ]
+}

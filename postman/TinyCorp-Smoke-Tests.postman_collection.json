@@ -1,0 +1,180 @@
+{
+  "info": {
+    "_postman_id": "86b4bdb8-c7c3-4a0b-8d74-45ab0af9771f",
+    "name": "TinyCorp Smoke Tests",
+    "description": "Ordered smoke tests for TinyCorp Kafka microservices. Run top-to-bottom in Collection Runner.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "dashboardBaseUrl", "value": "http://localhost:8080" },
+    { "key": "productBaseUrl", "value": "http://localhost:8081" },
+    { "key": "orderBaseUrl", "value": "http://localhost:8082" },
+    { "key": "paymentBaseUrl", "value": "http://localhost:8083" },
+    { "key": "notificationBaseUrl", "value": "http://localhost:8084" },
+    { "key": "productId", "value": "1" },
+    { "key": "orderNumber", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Dashboard Metrics",
+      "request": {
+        "method": "GET",
+        "url": "{{dashboardBaseUrl}}/api/dashboard/metrics"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "pm.test('Contains aggregate keys', function () {",
+              "  pm.expect(json).to.have.property('products');",
+              "  pm.expect(json).to.have.property('orders');",
+              "  pm.expect(json).to.have.property('payments');",
+              "  pm.expect(json).to.have.property('notifications');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Product Metrics",
+      "request": {
+        "method": "GET",
+        "url": "{{productBaseUrl}}/api/products/metrics"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "pm.test('Has totalProducts metric', function () { pm.expect(json).to.have.property('totalProducts'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Get Product By Id",
+      "request": {
+        "method": "GET",
+        "url": "{{productBaseUrl}}/api/products/{{productId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "pm.test('Product id matches', function () { pm.expect(String(json.id)).to.eql(String(pm.collectionVariables.get('productId'))); });",
+              "pm.test('Product has name and price', function () {",
+              "  pm.expect(json.name).to.exist;",
+              "  pm.expect(json.price).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Place Order via Dashboard",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"Smoke Test User\",\n  \"customerEmail\": \"smoke.test@example.com\",\n  \"items\": [\n    { \"productId\": 1, \"quantity\": 1 },\n    { \"productId\": 2, \"quantity\": 1 }\n  ]\n}"
+        },
+        "url": "{{dashboardBaseUrl}}/api/dashboard/orders"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "pm.test('Order has orderNumber', function () { pm.expect(json.orderNumber).to.exist; });",
+              "pm.collectionVariables.set('orderNumber', json.orderNumber);",
+              "pm.test('Order has items', function () { pm.expect(json.items).to.be.an('array').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. List Orders and Verify Created Order",
+      "request": {
+        "method": "GET",
+        "url": "{{orderBaseUrl}}/api/orders"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "var orderNumber = pm.collectionVariables.get('orderNumber');",
+              "pm.test('Orders list is returned', function () { pm.expect(json).to.be.an('array'); });",
+              "pm.test('Created order is present', function () {",
+              "  var found = json.some(function(o){ return o.orderNumber === orderNumber; });",
+              "  pm.expect(found).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Payment Metrics",
+      "request": {
+        "method": "GET",
+        "url": "{{paymentBaseUrl}}/api/payments/metrics"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Payload is object', function () { pm.expect(pm.response.json()).to.be.an('object'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Notification Metrics",
+      "request": {
+        "method": "GET",
+        "url": "{{notificationBaseUrl}}/api/notifications/metrics"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Payload is object', function () { pm.expect(pm.response.json()).to.be.an('object'); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
